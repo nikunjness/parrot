@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getProviders, signIn, useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
@@ -59,7 +60,13 @@ const Login = () => {
       <div className="flex flex-col items-center justify-center p-5 m-auto space-y-5 rounded shadow-lg md:p-10 md:w-1/3">
         <div>
           <Link href="/" className="text-4xl font-bold">
-            Nextacular
+             <Image
+                src="/images/logo.png" // Path to your logo image
+                alt="Intrvyu Logo"
+                width={200} // Adjust width as needed
+                height={50} // Adjust height as needed
+                className="h-24 w-48" // Adjust classes as needed
+              />
           </Link>
         </div>
         <div className="text-center">

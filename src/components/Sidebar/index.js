@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 import Actions from './actions';
@@ -41,7 +42,13 @@ const Sidebar = ({ menu }) => {
     <aside className="sticky z-40 flex flex-col space-y-5 text-white bg-gray-800 dark:bg-gray-900 md:overflow-y-auto md:w-1/4 md:h-screen overscroll-contain">
       <div className="relative flex items-center justify-center p-5 text-center border-b border-b-gray-900">
         <Link href="/" className="flex-grow text-2xl font-bold">
-          Nextacular
+           <Image
+                src="/images/logo-white.png" // Path to your logo image
+                alt="Intrvyu Logo"
+                width={200} // Adjust width as needed
+                height={50} // Adjust height as needed
+                className="h-24 w-48" // Adjust classes as needed
+              />
         </Link>
         <button className="absolute right-0 p-5 md:hidden" onClick={toggleMenu}>
           <Bars3Icon className="w-6 h-6" />

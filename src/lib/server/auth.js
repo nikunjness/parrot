@@ -40,7 +40,7 @@ export const authOptions = {
         const { host } = new URL(url);
         await sendMail({
           html: html({ email, url }),
-          subject: `[Nextacular] Sign in to ${host}`,
+          subject: `[Intrvyu] Sign in to ${host}`,
           text: text({ email, url }),
           to: email,
         });

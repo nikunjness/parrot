@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image'; // Import Image component if you're using Next.js
 import Link from 'next/link';
 import { useTranslation } from "react-i18next";
 
@@ -16,7 +17,13 @@ const Hero = () => {
       <div className="relative flex flex-col px-10 mx-auto space-y-5 md:w-3/4">
         <header className="flex items-center justify-between space-x-3">
           <Link href="/" className="text-2xl font-bold">
-            Nextacular
+            <Image
+                src="/images/logo.png" // Path to your logo image
+                alt="Intrvyu Logo"
+                width={200} // Adjust width as needed
+                height={50} // Adjust height as needed
+                className="h-24 w-48" // Adjust classes as needed
+              />
           </Link>
           <button className="md:hidden" onClick={toggleMenu}>
             {!showMenu ? (

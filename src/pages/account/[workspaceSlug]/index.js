@@ -9,7 +9,7 @@ const Workspace = () => {
   return (
     workspace && (
       <AccountLayout>
-        <Meta title={`Nextacular - ${workspace.name} | Dashboard`} />
+        <Meta title={`Intrvyu - ${workspace.name} | Dashboard`} />
         <Content.Title
           title={workspace.name}
           subtitle="This is your project's workspace"

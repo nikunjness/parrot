@@ -109,7 +109,7 @@ const Team = ({ isTeamOwner, workspace }) => {
 
   return (
     <AccountLayout>
-      <Meta title={`Nextacular - ${workspace.name} | Team Management`} />
+      <Meta title={`Intrvyu - ${workspace.name} | Team Management`} />
       <Content.Title
         title={t("settings.team.management")}
         subtitle={t("settings.team.manage.members")}

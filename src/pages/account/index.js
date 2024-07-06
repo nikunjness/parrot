@@ -65,7 +65,7 @@ const Welcome = () => {
 
   return (
     <AccountLayout>
-      <Meta title="Nextacular - Dashboard" />
+      <Meta title="Intrvyu - Dashboard" />
       <Content.Title
         title={t('workspace.dashboard.header.title')}
         subtitle={t("workspace.dashboard.header.description")}
