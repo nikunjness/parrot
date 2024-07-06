@@ -36,18 +36,26 @@ const AddJobForm = ({ onAddJob }) => {
         form {
           display: flex;
           flex-direction: column;
+          width: 500px;
+          margin: 0 auto;
         }
         div {
-          margin-bottom: 10px;
+          margin-bottom: 20px;
         }
         label {
           margin-bottom: 5px;
+          font-weight: bold;
         }
         input,
         textarea {
           width: 100%;
-          padding: 8px;
+          padding: 10px;
           box-sizing: border-box;
+          border: 1px solid #dcdcdc;
+          border-radius: 4px;
+        }
+        textarea {
+          height: 150px;
         }
         button {
           align-self: flex-end;

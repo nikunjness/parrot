@@ -54,7 +54,7 @@ const Login = () => {
   return (
     <AuthLayout>
       <Meta
-        title="NIntrvyu - AI-Powered Recruitment Agents | Login"
+        title="Intrvyu - AI-Powered Recruitment Agents | Login"
         description="Discover Intrvyu, the ultimate solution for modern recruitment. Our AI-powered agents streamline the hiring process by conducting efficient and accurate candidate screenings. Enhance your recruitment strategy with Intrvyu's advanced technology, ensuring you find the perfect fit for your organization quickly and effectively. Join the future of hiring with Intrvyu's intelligent and adaptive recruitment agents."
       />
       <div className="flex flex-col items-center justify-center p-5 m-auto space-y-5 rounded shadow-lg md:p-10 md:w-1/3">

@@ -1,22 +1,26 @@
+// src/pages/account/[workspaceSlug]/candidates.js
 import { useEffect, useState } from 'react';
+import { getSession } from 'next-auth/react';
 import Content from '@/components/Content';
 import Meta from '@/components/Meta';
 import { AccountLayout } from '@/layouts/index';
 import Modal from '@/components/Modal';
 import AddCandidateForm from '@/components/AddCandidateForm';
 import { useWorkspace } from '@/providers/workspace';
+import { getWorkspace, isWorkspaceOwner } from '@/prisma/services/workspace';
+import prisma from '@/prisma/index';
 
-const Candidates = () => {
-  const { workspace } = useWorkspace();
+const Candidates = ({ isTeamOwner, workspace, jobs }) => {
   const [candidates, setCandidates] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [editCandidate, setEditCandidate] = useState(null);
 
   useEffect(() => {
     if (workspace?.slug) {
+      // Fetch candidates from the API
       fetch(`/api/workspace/${workspace.slug}/candidates`)
         .then((res) => res.json())
-        .then((data) => setCandidates(data?.data?.candidates || []))
+        .then((data) => setCandidates(data.data.candidates))
         .catch((error) => console.error('Error fetching candidates:', error));
     }
   }, [workspace]);
@@ -31,11 +35,13 @@ const Candidates = () => {
           },
           body: JSON.stringify(candidate),
         });
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Error response text:', errorText);
           throw new Error(`Error: ${response.statusText}`);
         }
+
         const newCandidate = await response.json();
         setCandidates([...candidates, newCandidate.data.candidate]);
         setIsModalOpen(false);
@@ -47,41 +53,68 @@ const Candidates = () => {
     }
   };
 
-  const handleCreateScreeningLink = async (candidateId) => {
+  const handleEditCandidate = async (candidate) => {
     if (workspace?.slug) {
       try {
         const response = await fetch(`/api/workspace/${workspace.slug}/candidates`, {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            action: 'createScreeningLink',
-            candidateId,
-            screeningLink: `https://interview-platform.com/screening/${candidateId}`,
-            linkExpiration: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          }),
+          body: JSON.stringify(candidate),
         });
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Error response text:', errorText);
           throw new Error(`Error: ${response.statusText}`);
         }
-        const newScreeningLink = await response.json();
-        const updatedCandidates = candidates.map((candidate) =>
-          candidate.id === candidateId ? { ...candidate, ...newScreeningLink.data.screeningLink } : candidate
-        );
-        setCandidates(updatedCandidates);
+
+        const updatedCandidate = await response.json();
+        setCandidates(candidates.map((c) => (c.id === updatedCandidate.data.candidate.id ? updatedCandidate.data.candidate : c)));
+        setIsModalOpen(false);
       } catch (error) {
-        console.error('Error creating screening link:', error);
+        console.error('Error editing candidate:', error);
       }
     } else {
       console.error('Workspace slug is not available');
     }
   };
 
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
+  const handleDeleteCandidate = async (id) => {
+    if (workspace?.slug) {
+      try {
+        const response = await fetch(`/api/workspace/${workspace.slug}/candidates`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response text:', errorText);
+          throw new Error(`Error: ${response.statusText}`);
+        }
+
+        setCandidates(candidates.filter((c) => c.id !== id));
+      } catch (error) {
+        console.error('Error deleting candidate:', error);
+      }
+    } else {
+      console.error('Workspace slug is not available');
+    }
+  };
+
+const toggleModal = () => {
+  setEditCandidate(null); // Reset the form state for adding a new candidate
+  setIsModalOpen(!isModalOpen);
+};
+
+  const handleEditClick = (candidate) => {
+    setEditCandidate(candidate);
+    setIsModalOpen(true);
   };
 
   return (
@@ -96,43 +129,42 @@ const Candidates = () => {
         </div>
         <Content.Divider />
         <Content.Container>
-          {candidates.length > 0 ? (
-            <table className="table-auto w-full">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">#</th>
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Email</th>
-                  <th className="px-4 py-2">Screening Status</th>
-                  <th className="px-4 py-2">Actions</th>
+          <table className="table-fixed w-full">
+            <thead className="text-gray-400 border-b">
+              <tr>
+                <th className="py-3 text-left">S.No</th>
+                <th className="py-3 text-left">Name</th>
+                <th className="py-3 text-left">Email</th>
+                <th className="py-3 text-left">Job</th>
+                <th className="py-3 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm">
+              {candidates.map((candidate, index) => (
+                <tr key={candidate.id}>
+                  <td className="py-3">{index + 1}</td>
+                  <td className="py-3">{candidate.name}</td>
+                  <td className="py-3">{candidate.email}</td>
+                  <td className="py-3">{candidate.job?.title}</td>
+                  <td className="py-3">
+                    <button className="text-blue-600 hover:underline" onClick={() => handleEditClick(candidate)}>
+                      Edit
+                    </button>
+                    <button className="text-red-600 hover:underline ml-2" onClick={() => handleDeleteCandidate(candidate.id)}>
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {candidates.map((candidate, index) => (
-                  <tr key={candidate.id}>
-                    <td className="border px-4 py-2">{index + 1}</td>
-                    <td className="border px-4 py-2">{candidate.name}</td>
-                    <td className="border px-4 py-2">{candidate.email}</td>
-                    <td className="border px-4 py-2">{candidate.screeningStatus || 'N/A'}</td>
-                    <td className="border px-4 py-2">
-                      {candidate.screeningStatus === 'completed' ? (
-                        <button className="text-blue-500" onClick={() => viewScreeningDetails(candidate.id)}>View Screening Details</button>
-                      ) : (
-                        <button className="text-blue-500" onClick={() => handleCreateScreeningLink(candidate.id)}>Create Screening Link</button>
-                      )}
-                      <button className="text-green-500 ml-2">Edit</button>
-                      <button className="text-red-500 ml-2">Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No candidates found.</p>
-          )}
+              ))}
+            </tbody>
+          </table>
         </Content.Container>
-        <Modal show={isModalOpen} toggle={toggleModal} title="Add Candidate">
-          <AddCandidateForm onAddCandidate={handleAddCandidate} />
+        <Modal show={isModalOpen} toggle={toggleModal} title={editCandidate ? 'Edit Candidate' : 'Add Candidate'}>
+          <AddCandidateForm
+            onAddCandidate={editCandidate ? handleEditCandidate : handleAddCandidate}
+            jobs={jobs}
+            candidate={editCandidate}
+          />
         </Modal>
         <style jsx>{`
           .title-bar {
@@ -152,34 +184,52 @@ const Candidates = () => {
           .btn-primary {
             background-color: #0070f3;
           }
-          .table-auto {
+          table {
             width: 100%;
             border-collapse: collapse;
           }
-          .border {
+          th, td {
+            padding: 10px;
             border: 1px solid #ddd;
           }
-          .px-4 {
-            padding-left: 1rem;
-            padding-right: 1rem;
-          }
-          .py-2 {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-          }
-          .text-blue-500 {
-            color: #0070f3;
-          }
-          .text-green-500 {
-            color: #10b981;
-          }
-          .text-red-500 {
-            color: #ef4444;
+          th {
+            background-color: #f4f4f4;
           }
         `}</style>
       </AccountLayout>
     )
   );
+};
+
+export const getServerSideProps = async (context) => {
+  const session = await getSession(context);
+  let isTeamOwner = false;
+  let workspace = null;
+  let jobs = [];
+
+  if (session) {
+    workspace = await getWorkspace(
+      session.user.userId,
+      session.user.email,
+      context.params.workspaceSlug
+    );
+
+    if (workspace) {
+      isTeamOwner = isWorkspaceOwner(session.user.email, workspace);
+      jobs = await prisma.job.findMany({
+        where: { workspaceId: workspace.id },
+        select: { id: true, title: true },
+      });
+    }
+  }
+
+  return {
+    props: {
+      isTeamOwner,
+      workspace,
+      jobs,
+    },
+  };
 };
 
 export default Candidates;
