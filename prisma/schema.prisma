@@ -112,6 +112,8 @@ model User {
   createdWorkspace Workspace[]
   customerPayment  CustomerPayment?
   domains          Domain[]
+  jobs             Job[]
+  activities       Activity[]
 
   @@unique([userCode, email])
   @@map("users")
@@ -137,12 +139,65 @@ model Workspace {
   deletedAt     DateTime?
   updatedAt     DateTime? @updatedAt
 
-  creator User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  members Member[]
-  domains Domain[]
-
+  creator   User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  members   Member[]
+  domains   Domain[]
+  jobs      Job[]
+  
   @@unique([workspaceCode, inviteCode])
   @@map("workspaces")
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  userId      String
+  workspaceId String
+
+  user       User       @relation(fields: [userId], references: [id])
+  workspace  Workspace  @relation(fields: [workspaceId], references: [id])
+  candidates Candidate[]
+  activities Activity[]
+
+  @@map("jobs")
+}
+
+model Candidate {
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  jobId            String
+  screeningLink    String?   @unique
+  linkExpiration   DateTime?
+  resumeLink       String?   // Added this field for storing the S3 link
+  screeningStatus  String?   // Added this field for screening status
+  screeningDetails Json?     // Added this field for screening details
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime? @updatedAt
+
+  job       Job       @relation(fields: [jobId], references: [id])
+  activities Activity[]
+
+  @@map("candidates")
+}
+
+model Activity {
+  id          String    @id @default(cuid())
+  type        String
+  description String
+  createdAt   DateTime  @default(now())
+  jobId       String?
+  candidateId String?
+  userId      String?   // Added this field for the User relation
+
+  job       Job?       @relation(fields: [jobId], references: [id])
+  candidate Candidate? @relation(fields: [candidateId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+
+  @@map("activities")
 }
 
 enum InvitationStatus {

@@ -7,8 +7,12 @@ const menu = (workspaceId) => [
         path: `/account/${workspaceId}`,
       },
       {
-        name: 'common.label.integrations',
-        path: `/account/${workspaceId}/integrations`,
+        name: 'common.label.jobs',
+        path: `/account/${workspaceId}/jobs`,
+      },
+      {
+        name: 'common.label.candidates',
+        path: `/account/${workspaceId}/candidates`,
       },
     ],
   },
